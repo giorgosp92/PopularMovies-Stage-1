@@ -22,7 +22,8 @@ public final class NetworkUtilities {
     private static final String MOVIES_DB_URL = "https://api.themoviedb.org/3/";
     private static final String IMAGES_MOVIES_DB_URL = "https://image.tmdb.org/t/p/";
     private static final String IMDB_MOVIE_URL = "http://www.imdb.com/title/";
-    private static final String MOVIES_DB_API_KEY = "f2369952850a93c493e7d7ec7d04db73";
+    /* @TODO Fill your dbmovies API Key */
+    private static final String MOVIES_DB_API_KEY = "";
 
     final static String MOVIE_PARAM = "movie";
     final static String API_PARAM = "api_key";
