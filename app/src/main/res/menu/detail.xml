@@ -2,17 +2,24 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
+        android:id="@+id/item_details_reviews"
+        android:title="@string/check_reviews_for_this_movie"
+        android:icon="@drawable/review_icon"
+        app:showAsAction="ifRoom"
+        android:orderInCategory="1"
+        />
+    <item
         android:id="@+id/item_details_imdb"
         android:title="@string/imdb_menu_label"
         android:icon="@drawable/imdb"
         app:showAsAction="ifRoom"
-        android:orderInCategory="1"
+        android:orderInCategory="2"
         />
     <item
         android:id="@+id/item_details_share"
         android:title="@string/share"
         android:icon="@android:drawable/ic_menu_share"
         app:showAsAction="ifRoom"
-        android:orderInCategory="2"
+        android:orderInCategory="3"
         />
 </menu>

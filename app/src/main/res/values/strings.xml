@@ -16,4 +16,36 @@
     <string name="share_message">Check out this movie: </string>
     <string name="share_chooser_title">Choose a way to tell someone about this movie</string>
     <string name="movies">Movies</string>
+    <string name="sync_now">Sync Now</string>
+
+    <string name="placeholder_movie_title">Movie title</string>
+    <string name="placeholder_movie_duration">142 min</string>
+    <string name="placeholder_vote_average">6.6/10</string>
+    <string name="placeholder_movie_genres">Animation, Family, Horror</string>
+    <string name="placeholder_movie_overview">In the near future, a weary Logan cares for an ailing Professor X in a hide out on the Mexican border. But Logan\'s attempts to hide from the world and his legacy are up-ended when a young mutant arrives, being pursued by dark forces.</string>
+    <string name="placeholder_movie_budget">20.000.000 $</string>
+    <string name="placeholder_movie_release_date">2016-06-16</string>
+
+    <string name="movie_not_saved_as_favorite_content_description">Movie is not saved as Favorite</string>
+    <string name="favorite_saved">Movie saved as Favorite</string>
+    <string name="favorite_removed">Movie was removed from favorites</string>
+    <string name="trailers">Trailers</string>
+    <string name="check_reviews_for_this_movie">Check Reviews for this Movie</string>
+    <string name="reviews_activity_title">Reviews</string>
+    <string name="reviews">Reviews</string>
+    <string name="title_activity_settings">Settings</string>
+
+    <!-- Settings Strings -->
+    <string name="pref_type_list_key" translatable="false">type_list</string>
+    <string name="pref_type_list_label">Sort Type</string>
+
+    <string name="pref_type_list_popular_value" translatable="false">popular</string>
+    <string name="pref_type_list_top_rated_value" translatable="false">top_rated</string>
+    <string name="pref_type_list_favorites_value" translatable="false">favorites</string>
+
+    <string name="pref_type_list_popular_label">Popular</string>
+    <string name="pref_type_list_top_rated_label">Top Rated</string>
+    <string name="pref_type_list_favorites_label">Favorites</string>
+    <string name="favorite">Favorite</string>
+    <string name="duration_minutes_value_small">min</string>
 </resources>

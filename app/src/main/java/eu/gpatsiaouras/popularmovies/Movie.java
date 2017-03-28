@@ -1,5 +1,6 @@
 package eu.gpatsiaouras.popularmovies;
 
+import android.net.Network;
 import android.net.Uri;
 
 import java.net.URI;
@@ -18,37 +19,22 @@ public class Movie {
     private String title;
     /* Movie ID */
     private int id;
-    /* release data */
-    private Date release_date;
-    private boolean adult;
-    private String overview;
-    /* Original Data */
-    private String original_title;
-    private String original_language;
-    /* Votes and Rating*/
-    private int vote_count;
-    private double vote_average;
+    private String image_path;
 
-    private double popularity;
-    private Uri image_uri;
-
-    public Movie(String title, int id, Date release_date,String adult, String overview, String original_title, String original_language, double vote_average, int vote_count, double popularity, String poster_path) throws ParseException {
-        this.title = title;
+    public Movie(int id, String title, String image_path) throws ParseException {
         this.id = id;
-        this.overview = overview;
-        this.original_title = original_title;
-        this.original_language = original_language;
-        this.vote_count = vote_count;
-        this.vote_average = vote_average;
-        this.popularity = popularity;
-        this.image_uri = NetworkUtilities.buildImageURI(poster_path.substring(1));/* First letter is a slash. Remove the slash*/
-        this.adult = Boolean.valueOf(adult);
-        this.release_date = release_date;
+        this.title = title;
+        if (String.valueOf(image_path.charAt(0)).equals("/")) {
+            this.image_path = image_path.substring(1);/* First letter is a slash. Remove the slash*/
+        } else {
+            this.image_path = image_path;
+        }
     }
 
     /* Returns the image url of this object*/
+    public String getImagePath() { return this.image_path;}
     public Uri getImageUri() {
-        return this.image_uri;
+        return NetworkUtilities.buildImageURI(this.image_path);
     }
     public String getTitle() {
         return this.title;

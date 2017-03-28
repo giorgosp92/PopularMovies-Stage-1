@@ -1,6 +1,8 @@
 package eu.gpatsiaouras.popularmovies.Utilities;
 
+import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.util.Log;
 
 import org.json.JSONArray;
@@ -11,8 +13,11 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import eu.gpatsiaouras.popularmovies.Data.MoviesContract;
 import eu.gpatsiaouras.popularmovies.Movie;
 import eu.gpatsiaouras.popularmovies.MovieDetails;
+import eu.gpatsiaouras.popularmovies.MovieReview;
+import eu.gpatsiaouras.popularmovies.MovieVideo;
 
 /**
  * This class will contain all methods to manipulate data from the db movie database api
@@ -20,27 +25,6 @@ import eu.gpatsiaouras.popularmovies.MovieDetails;
 
 public class MovieDatabaseUtilities {
     private static final String TAG = MovieDatabaseUtilities.class.getSimpleName();
-    public static String[] getSimpleTitlesFromMoviesJson(String moviesJsonString)
-        throws JSONException {
-
-        /* String array to hold titles and be returned*/
-        String[] movie_titles = null;
-
-        JSONObject moviesJson = new JSONObject(moviesJsonString);
-        JSONArray moviesArray = moviesJson.getJSONArray("results");
-
-        movie_titles = new String[moviesArray.length()];
-
-        for (int i=0; i < moviesArray.length();i++) {
-
-            /* Get the current movie json object*/
-            JSONObject movieObject = moviesArray.getJSONObject(i);
-            /* Find the title and put it in movie titles string array*/
-            movie_titles[i] = movieObject.getString("title");
-        }
-
-        return movie_titles;
-    }
 
     public static Movie[] getMovieObjectsFromMoviesJson(String moviesJsonString)
             throws JSONException{
@@ -53,22 +37,15 @@ public class MovieDatabaseUtilities {
         for (int i=0; i < moviesArray.length();i++) {
             JSONObject movieObject = moviesArray.getJSONObject(i);
             int id                      = movieObject.getInt("id");
-            int vote_count              = movieObject.getInt("vote_count");
-            double vote_average         = movieObject.getDouble("vote_average");
-            double popularity           = movieObject.getDouble("popularity");
-            String adult                = movieObject.getString("adult");
             String title                = movieObject.getString("title");
-            String original_title       = movieObject.getString("original_title");
-            String original_language    = movieObject.getString("original_language");
-            String poster_path          = movieObject.getString("poster_path");
-            String overview             = movieObject.getString("overview");
+            String image_path           = movieObject.getString("poster_path");
             /*Date format*/
             Date release_date = null;
             Movie currentMovieObject = null;
             try {
                 SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
                 release_date = formatter.parse(movieObject.getString("release_date"));
-                currentMovieObject = new Movie(title, id, release_date, adult, overview, original_title, original_language, vote_average, vote_count, popularity, poster_path);
+                currentMovieObject = new Movie(id, title, image_path);
             } catch (java.text.ParseException e) {
                 e.printStackTrace();
             }
@@ -140,7 +117,6 @@ public class MovieDatabaseUtilities {
              status,
              tagline,
              title,
-             video,
              vote_average,
              vote_count,
              genresString);
@@ -150,5 +126,83 @@ public class MovieDatabaseUtilities {
 
         Log.d(TAG, movieDetails.toString());
         return movieDetails;
+    }
+
+
+    public static MovieVideo[] getMovieVideosFromJson(String movieVideosJsonString)
+        throws JSONException {
+        JSONObject videosJson = new JSONObject(movieVideosJsonString);
+
+        JSONArray videosArray = videosJson.getJSONArray("results");
+
+        MovieVideo[] movieVideosArray = new MovieVideo[videosArray.length()];
+
+        for (int i=0; i < videosArray.length();i++) {
+
+            JSONObject videoCurrentObject = videosArray.getJSONObject(i);
+
+            String key  = videoCurrentObject.getString("key");
+            String name = videoCurrentObject.getString("name");
+            String site = videoCurrentObject.getString("site");
+            String type = videoCurrentObject.getString("type");
+
+            MovieVideo currentMovieVideo = new MovieVideo(key, name, site, type);
+
+            movieVideosArray[i] = currentMovieVideo;
+        }
+        return movieVideosArray;
+    }
+
+    public static MovieReview[] getMovieReviewsFromJson(String movieReviewsJsonString)
+        throws JSONException {
+        JSONObject reviewsJson = new JSONObject(movieReviewsJsonString);
+
+        JSONArray reviewsArray = reviewsJson.getJSONArray("results");
+
+        MovieReview[] movieReviewsArray = new MovieReview[reviewsArray.length()];
+
+        for (int i=0; i < reviewsArray.length();i++) {
+            JSONObject reviewCurrentObject = reviewsArray.getJSONObject(i);
+
+            String id           = reviewCurrentObject.getString("id");
+            String author       = reviewCurrentObject.getString("author");
+            String content      = reviewCurrentObject.getString("content");
+            String url          = reviewCurrentObject.getString("url");
+
+            MovieReview currentMovieReview = new MovieReview(id, author, content, url);
+
+            movieReviewsArray[i] = currentMovieReview;
+        }
+        return movieReviewsArray;
+    }
+
+    public static Movie[] getMovieObjectsFromCursor(Cursor movieResultsCursor) {
+        if (movieResultsCursor == null) {
+            return null;
+        }
+
+        int movieDbIdCol    = movieResultsCursor.getColumnIndex(MoviesContract.FavoriteEntry.COLUMN_MOVIESDBID);
+        int titleCol        = movieResultsCursor.getColumnIndex(MoviesContract.FavoriteEntry.COLUMN_TITLE);
+        int imageCol        = movieResultsCursor.getColumnIndex(MoviesContract.FavoriteEntry.COLUMN_IMAGE_PATH);
+
+        Movie[] movieObjects = new Movie[movieResultsCursor.getCount()];
+
+        while (movieResultsCursor.moveToNext()) {
+            int movieDbId    = movieResultsCursor.getInt(movieDbIdCol);
+            String title        = movieResultsCursor.getString(titleCol);
+            String image_path   = movieResultsCursor.getString(imageCol);
+            try {
+                Movie currentMovieObject = new Movie(movieDbId, title, image_path);
+                movieObjects[movieResultsCursor.getPosition()] = currentMovieObject;
+            } catch (ParseException e) {
+                e.printStackTrace();
+                return null;
+            }
+
+        }
+
+        return movieObjects;
+
+
     }
 }

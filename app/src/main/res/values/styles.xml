@@ -6,6 +6,20 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+        <item name="preferenceTheme">@style/PreferenceThemeOverlay</item>
     </style>
+
+    <style name="WhiteTitle" parent="Base.TextAppearance.AppCompat.Title">
+        <item name="android:textColor">#FFFFFF</item>
+        <item name="android:shadowColor">#333333</item>
+        <item name="android:shadowDx">3</item>
+        <item name="android:shadowDy">3</item>
+        <item name="android:shadowRadius">5</item>
+    </style>
+
+    <style name="BlackTitle" parent="Base.TextAppearance.AppCompat.Title">
+        <item name="android:textColor">#333333</item>
+    </style>
+
 
 </resources>

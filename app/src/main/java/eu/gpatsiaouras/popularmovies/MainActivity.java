@@ -1,12 +1,16 @@
 package eu.gpatsiaouras.popularmovies;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.preference.PreferenceManager;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.DisplayMetrics;
@@ -16,15 +20,19 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
+
 
 import java.net.URL;
 
+import eu.gpatsiaouras.popularmovies.Data.MoviesContract;
 import eu.gpatsiaouras.popularmovies.Utilities.EndlessRecyclerViewScrollListener;
 import eu.gpatsiaouras.popularmovies.Utilities.MovieDatabaseUtilities;
 import eu.gpatsiaouras.popularmovies.Utilities.NetworkUtilities;
 
-public class MainActivity extends AppCompatActivity implements MovieAdapter.MovieAdapterOnClickHandler{
+public class MainActivity extends AppCompatActivity implements
+        MovieAdapter.MovieAdapterOnClickHandler,
+        SharedPreferences.OnSharedPreferenceChangeListener
+        {
 
     private static final String TAG = MainActivity.class.getSimpleName();
     private MovieAdapter mAdapter;
@@ -36,6 +44,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
     /* Recycler View onScroll*/
     private EndlessRecyclerViewScrollListener scrollListener;
     private int currentPage = 1;
+    private static final int REQUEST_CODE = 1;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -58,24 +67,38 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
             @Override
             public void onLoadMore(int page, int totalItemsCount, RecyclerView view) {
                 currentPage = page;
-                loadMoreMovies();
+                loadMovieData();
                 Log.d(TAG, "Loading more. Current page to be loaded is "+currentPage);
+                Log.d(TAG, "Total items count is: "+totalItemsCount);
             }
         };
         // Adds the scroll listener to RecyclerView
         mRecyclerView.addOnScrollListener(scrollListener);
 
-        /* Application starts with popular movies as default*/
-        dataSetType = "popular";
+        setupSharedPreferences();
+
         /* Fetch movies Data */
         if (isOnline())
-            loadMovieData(dataSetType);
+            loadMovieData();
         else{
             loadingProgressBar.setVisibility(View.INVISIBLE);
             showErrorMessage();
         }
+
     }
 
+
+    private void setTypeOfList(String typeOfList) {
+        dataSetType = typeOfList;
+
+        if (dataSetType.equals(getString(R.string.pref_type_list_popular_value))) {
+            setTitle(getString(R.string.pref_type_list_popular_label) + " " + getString(R.string.movies));
+        } else if (dataSetType.equals(getString(R.string.pref_type_list_top_rated_value))) {
+            setTitle(getString(R.string.pref_type_list_top_rated_label) + " " + getString(R.string.movies));
+        } else if (dataSetType.equals(getString(R.string.pref_type_list_favorites_value))) {
+            setTitle(getString(R.string.pref_type_list_favorites_label) + " " + getString(R.string.movies));
+        }
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -86,25 +109,18 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int selectedItem = item.getItemId();
-        if (selectedItem == R.id.item_switch_sort) {
-            switchDataSetAndTitle();
-            if (item.getTitle().equals(getResources().getString(R.string.popular)))
-                item.setTitle(R.string.top_rated);
-            else
-                item.setTitle(R.string.popular);
-        } else {
-
+        if (selectedItem == R.id.item_settings) {
+            Intent startSettingsActivity = new Intent(this, SettingsActivity.class);
+            startActivity(startSettingsActivity);
+            return true;
         }
         return true;
     }
 
-    private void loadMoreMovies() {
-        loadMovieData(dataSetType);
-    }
 
-    private void loadMovieData(String type_of_list) {
+    private void loadMovieData() {
         showMoviesGridView();
-        new FetchMoviesTask().execute(type_of_list);
+        new FetchMoviesTask().execute();
     }
 
     private void resetRecyclerView() {
@@ -114,18 +130,6 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
         scrollListener.resetState();
     }
 
-    private void switchDataSetAndTitle() {
-        resetRecyclerView();
-        if (dataSetType == "popular") {
-            loadMovieData("toprated");
-            setTitle(getResources().getString(R.string.top_rated)+" "+ getResources().getString(R.string.movies));
-            dataSetType = "toprated";
-        } else {
-            loadMovieData("popular");
-            setTitle(getResources().getString(R.string.popular)+" "+ getResources().getString(R.string.movies));
-            dataSetType = "popular";
-        }
-    }
 
     private void showErrorMessage() {
         /* First, hide the currently visible data */
@@ -146,10 +150,42 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
         Context context = this;
         Intent intentToStartDetailActivity = new Intent(context, DetailActivity.class);
         intentToStartDetailActivity.putExtra("movieId", movieId);
-        startActivity(intentToStartDetailActivity);
+        startActivityForResult(intentToStartDetailActivity, REQUEST_CODE);
     }
 
-    public class FetchMoviesTask extends AsyncTask<String, Void, Movie[]> {
+    @Override
+    protected void onResume() {
+        super.onResume();
+        resetRecyclerView();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode == REQUEST_CODE)
+        {
+            if(resultCode == Activity.RESULT_OK)
+            {
+                resetRecyclerView();
+                currentPage=1;
+                loadMovieData();
+            }
+        }
+    }
+
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+        if (key.equals(getString(R.string.pref_type_list_key))) {
+            setTypeOfList(sharedPreferences.getString(getString(R.string.pref_type_list_key), getString(R.string.pref_type_list_popular_value)));
+            //Reset Recycler View
+            resetRecyclerView();
+            currentPage = 1;
+            //Update data
+            loadMovieData();
+        }
+    }
+
+    public class FetchMoviesTask extends AsyncTask<Void, Void, Movie[]> {
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
@@ -172,22 +208,30 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
         }
 
         @Override
-        protected Movie[] doInBackground(String... params) {
-            /* If there is not a type of fetching defined return null */
-            if (params.length == 0) {
-                return null;
-            }
-            String type_of_list = params[0];
-            URL moviesRequestUrl = NetworkUtilities.buildListURL(type_of_list, currentPage);
-            try {
-                String jsonMovieResponse = NetworkUtilities.getResponsefromHttpUrl(moviesRequestUrl);
-                Movie[] justMovieObjects = MovieDatabaseUtilities.getMovieObjectsFromMoviesJson(jsonMovieResponse);
-                return justMovieObjects;
-            } catch (Exception e) {
-                e.printStackTrace();
-                return null;
+        protected Movie[] doInBackground(Void... params){
+            if (dataSetType.equals(getString(R.string.pref_type_list_popular_value)) || dataSetType.equals(getString(R.string.pref_type_list_top_rated_value))) {
+                URL moviesRequestUrl = NetworkUtilities.buildListURL(dataSetType, currentPage);
+                try {
+                    String jsonMovieResponse = NetworkUtilities.getResponsefromHttpUrl(moviesRequestUrl);
+                    Movie[] movieObjects = MovieDatabaseUtilities.getMovieObjectsFromMoviesJson(jsonMovieResponse);
+                    return movieObjects;
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    return null;
+                }
+            } else if (dataSetType.equals(getString(R.string.pref_type_list_favorites_value))) {
+                Movie[] movieObjects;
+                if (currentPage > 1) {
+                    movieObjects = new Movie[0];
+                    return movieObjects;
+                }
+                //Make offline call to MoviesProvider to retrieve favorite movies
+                Cursor favoriteMoviesCursor = getContentResolver().query(MoviesContract.FavoriteEntry.CONTENT_URI, null, null, null, MoviesContract.FavoriteEntry._ID);
+                movieObjects = MovieDatabaseUtilities.getMovieObjectsFromCursor(favoriteMoviesCursor);
+                return movieObjects;
             }
 
+            return null;
         }
     }
 
@@ -197,10 +241,18 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
         return netInfo != null && netInfo.isConnectedOrConnecting();
     }
 
+    private void setupSharedPreferences() {
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        //type of list
+        setTypeOfList(sharedPreferences.getString(getString(R.string.pref_type_list_key), getString(R.string.pref_type_list_popular_value)));
+        // Register the listener
+        sharedPreferences.registerOnSharedPreferenceChangeListener(this);
+    }
+
     public static int calculateNoOfColumns(Context context) {
         DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
         float dpWidth = displayMetrics.widthPixels / displayMetrics.density;
-        int noOfColumns = (int) (dpWidth / 180);
+        int noOfColumns = (int) (dpWidth / 150);
         return noOfColumns;
     }
 }

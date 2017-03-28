@@ -29,7 +29,6 @@ public class MovieDetails {
     String status;
     String tagline;
     String title;
-    boolean video;
     double vote_average;
     long vote_count;
     String genres;
@@ -52,7 +51,6 @@ public class MovieDetails {
             String status,
             String tagline,
             String title,
-            boolean video,
             double vote_average,
             long vote_count,
             String genres
@@ -74,7 +72,6 @@ public class MovieDetails {
         this.status =  status;
         this.tagline =  tagline;
         this.title =  title;
-        this.video =  Boolean.valueOf(video);
         this.vote_average =  vote_average;
         this.vote_count =  vote_count;
         this.genres = genres;
@@ -85,6 +82,9 @@ public class MovieDetails {
     }
     public Uri getBackdropUri(String size) {
         return NetworkUtilities.buildImageURI(this.backdrop_uri, size);
+    }
+    public String getImagePath() {
+        return this.image_uri;
     }
     public String getTitle() {
         return this.title;
