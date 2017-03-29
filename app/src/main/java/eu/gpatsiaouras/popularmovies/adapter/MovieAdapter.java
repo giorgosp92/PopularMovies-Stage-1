@@ -1,18 +1,17 @@
-package eu.gpatsiaouras.popularmovies;
+package eu.gpatsiaouras.popularmovies.adapter;
 
 
 import android.content.Context;
-import android.media.Image;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
-import org.w3c.dom.Text;
+import eu.gpatsiaouras.popularmovies.Movie;
+import eu.gpatsiaouras.popularmovies.R;
 
 public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieAdapterViewHolder> {
 
@@ -74,6 +73,10 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieAdapter
     public void setMovieData(Movie[] moviesData) {
         moviesArray = moviesData;
         notifyDataSetChanged();
+    }
+
+    public Movie[] getMovieData() {
+        return moviesArray;
     }
 
     public void appendMovieData(Movie[] moviesData) {

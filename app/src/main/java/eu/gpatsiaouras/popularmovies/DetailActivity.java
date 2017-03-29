@@ -69,7 +69,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
     private MovieVideo[] dMovieVideos;
     private ImageButton dFavoriteButton;
     private GridView dGridView;
-    int dMovieId;
+    private int dMovieId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

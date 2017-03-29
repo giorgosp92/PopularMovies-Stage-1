@@ -2,7 +2,6 @@ package eu.gpatsiaouras.popularmovies;
 
 import android.content.Context;
 import android.content.Intent;
-import android.net.Network;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.Loader;
@@ -14,13 +13,11 @@ import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import org.w3c.dom.Text;
-
-import java.io.IOException;
 import java.net.URL;
 
 import eu.gpatsiaouras.popularmovies.Utilities.MovieDatabaseUtilities;
 import eu.gpatsiaouras.popularmovies.Utilities.NetworkUtilities;
+import eu.gpatsiaouras.popularmovies.adapter.ReviewAdapter;
 
 public class ReviewsActivity extends AppCompatActivity implements
         LoaderManager.LoaderCallbacks<MovieReview[]>{

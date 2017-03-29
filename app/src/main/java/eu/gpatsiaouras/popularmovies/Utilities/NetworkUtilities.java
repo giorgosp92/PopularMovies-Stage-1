@@ -44,6 +44,10 @@ public final class NetworkUtilities {
     public final static String BACKDROP_SIZE_MEDIUM = "w780";
     public final static String BACKDROP_SIZE_LARGE = "w1280";
 
+    public NetworkUtilities() {
+        throw new AssertionError();
+    }
+
     public static URL buildListURL(String type_of_list, int page) {
         Uri builtUri = Uri.parse(MOVIES_DB_URL).buildUpon()
                 .appendPath(MOVIE_PARAM)

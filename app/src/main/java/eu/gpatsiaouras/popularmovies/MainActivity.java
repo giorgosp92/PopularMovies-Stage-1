@@ -8,6 +8,9 @@ import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
+import android.os.Parcel;
+import android.os.Parcelable;
+import android.os.PersistableBundle;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.preference.PreferenceManager;
@@ -20,22 +23,26 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 
 import java.net.URL;
+import java.text.ParseException;
 
 import eu.gpatsiaouras.popularmovies.Data.MoviesContract;
 import eu.gpatsiaouras.popularmovies.Utilities.EndlessRecyclerViewScrollListener;
 import eu.gpatsiaouras.popularmovies.Utilities.MovieDatabaseUtilities;
 import eu.gpatsiaouras.popularmovies.Utilities.NetworkUtilities;
+import eu.gpatsiaouras.popularmovies.adapter.MovieAdapter;
 
 public class MainActivity extends AppCompatActivity implements
         MovieAdapter.MovieAdapterOnClickHandler,
         SharedPreferences.OnSharedPreferenceChangeListener
-        {
+{
 
     private static final String TAG = MainActivity.class.getSimpleName();
     private MovieAdapter mAdapter;
+    private Movie[] mMoviesDataset;
     private RecyclerView mRecyclerView;
     private ProgressBar loadingProgressBar;
     private TextView errorMessageDisplay;
@@ -44,7 +51,10 @@ public class MainActivity extends AppCompatActivity implements
     /* Recycler View onScroll*/
     private EndlessRecyclerViewScrollListener scrollListener;
     private int currentPage = 1;
+    private int mRecyclerViewPosition;
     private static final int REQUEST_CODE = 1;
+    private static final String SAVED_RECYCLER_VIEW_POSITION_KEY = "recycler_view_position";
+    private static final String MOVIE_DATASET_KEY = "movie_dataset";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -77,14 +87,27 @@ public class MainActivity extends AppCompatActivity implements
 
         setupSharedPreferences();
 
-        /* Fetch movies Data */
-        if (isOnline())
-            loadMovieData();
-        else{
-            loadingProgressBar.setVisibility(View.INVISIBLE);
-            showErrorMessage();
+        //Check if there is a saved instance, a saved position for the recycler view and a movies dataset
+        if (savedInstanceState != null && savedInstanceState.containsKey(SAVED_RECYCLER_VIEW_POSITION_KEY) && savedInstanceState.containsKey(MOVIE_DATASET_KEY)) {
+            //Retrieve the movies dataset from the bundle
+            mMoviesDataset = (Movie[]) savedInstanceState.getParcelableArray(MOVIE_DATASET_KEY);
+            // Set the dataset to the mAdapter
+            mAdapter.setMovieData(mMoviesDataset);
+            // Retrieve the position where the user was when he left the app or rotated the device
+            mRecyclerViewPosition = savedInstanceState.getInt(SAVED_RECYCLER_VIEW_POSITION_KEY);
+            //if the position is valid go to that position
+            if (mRecyclerViewPosition != RecyclerView.NO_POSITION) {
+                layoutManager.scrollToPosition(mRecyclerViewPosition);
+            }
+        } else {
+            // There was not a saved instance. Load data normally from network
+            if (isOnline())
+                loadMovieData();
+            else{
+                loadingProgressBar.setVisibility(View.INVISIBLE);
+                showErrorMessage();
+            }
         }
-
     }
 
 
@@ -196,12 +219,14 @@ public class MainActivity extends AppCompatActivity implements
         protected void onPostExecute(Movie[] movies) {
             loadingProgressBar.setVisibility(View.INVISIBLE);
             if (movies != null) {
+                mMoviesDataset = movies;
                 showMoviesGridView();
                 if (currentPage == 1)
                     mAdapter.setMovieData(movies);
                 else {
                     mAdapter.appendMovieData(movies);
                 }
+
             } else {
                 showErrorMessage();
             }
@@ -254,5 +279,27 @@ public class MainActivity extends AppCompatActivity implements
         float dpWidth = displayMetrics.widthPixels / displayMetrics.density;
         int noOfColumns = (int) (dpWidth / 150);
         return noOfColumns;
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        // Get Current Position from layout manager
+        int currentPosition = layoutManager.findFirstVisibleItemPosition();
+        // Put the position in bundle
+        outState.putInt(SAVED_RECYCLER_VIEW_POSITION_KEY, currentPosition);
+        // My recycler view has implemented the EndlessRecyclerViewScrollListener which means that
+        // as the user scrolls more and more data are being loaded.
+        // That's why if the user has reached to the position of 150 in layoutManager we have to preserve
+        // the movies list so we can recreate the recyclerview as it was exactly and with the same dataset
+        // We use the fuction getMovieData from the mAdapter because it the one that can return the whole dataset
+        // and not just the last partion (the last page)
+        outState.putParcelableArray(MOVIE_DATASET_KEY, mAdapter.getMovieData());
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        //Restoration of the Recyclerview and it's position is taking place in method onCreate
     }
 }

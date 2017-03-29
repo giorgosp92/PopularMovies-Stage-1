@@ -1,19 +1,15 @@
 package eu.gpatsiaouras.popularmovies;
 
-import android.net.Network;
 import android.net.Uri;
+import android.os.Parcel;
+import android.os.Parcelable;
 
-import java.net.URI;
-import java.net.URL;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
 
 import eu.gpatsiaouras.popularmovies.Utilities.NetworkUtilities;
 
 
-public class Movie {
+public class Movie implements Parcelable {
     private static final String TAG = Movie.class.getSimpleName();
     /* Movie Title */
     private String title;
@@ -43,4 +39,35 @@ public class Movie {
         return this.id;
     }
     /* Remaining functions for the rest of the attributes will be created upon need*/
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeInt(id);
+        dest.writeString(title);
+        dest.writeString(image_path);
+    }
+
+    public static final Parcelable.Creator<Movie> CREATOR = new Parcelable.Creator<Movie>() {
+
+        @Override
+        public Movie createFromParcel(Parcel source) {
+            try {
+                Movie movie = new Movie(source.readInt(), source.readString(), source.readString());
+                return movie;
+            } catch (ParseException e) {
+                e.printStackTrace();
+                return null;
+            }
+        }
+
+        @Override
+        public Movie[] newArray(int size) {
+            return new Movie[size];
+        }
+    };
 }

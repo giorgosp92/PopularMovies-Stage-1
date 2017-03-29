@@ -1,4 +1,4 @@
-package eu.gpatsiaouras.popularmovies;
+package eu.gpatsiaouras.popularmovies.adapter;
 
 
 import android.content.Context;
@@ -7,6 +7,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
+import eu.gpatsiaouras.popularmovies.MovieReview;
+import eu.gpatsiaouras.popularmovies.R;
 
 public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ReviewAdapterViewHolder>{
 
